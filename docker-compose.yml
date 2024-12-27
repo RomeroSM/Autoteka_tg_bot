@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  bot:
+    build: .
+    container_name: telegram_bot
+    volumes:
+      - ./data_db.db:/app/data_db.db
+    environment:
+      - BOT_TOKEN='7975991113:AAF1I6DFbCipiX0WBuqw7iHKzdcAPIZfcHs'
+    restart: unless-stopped
