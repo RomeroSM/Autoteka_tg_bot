@@ -112,16 +112,16 @@ async def correct_num(user_tgid, bot):
                                                        'Как только будут исправлены все неполадки ваш запрос будет обработан.')
 
     else:
-        # options = webdriver.EdgeOptions()
-        # driver = webdriver.Remote(
-        #     command_executor='http://webdriver:4444/wd/hub',
-        #     options=options
-        # )
-        # driver.get('https://autoteka.ru')
-
-
-        driver = webdriver.Edge()
+        options = webdriver.EdgeOptions()
+        driver = webdriver.Remote(
+            command_executor='http://webdriver:4444/wd/hub',
+            options=options
+        )
         driver.get('https://autoteka.ru')
+
+
+        # driver = webdriver.Edge()
+        # driver.get('https://autoteka.ru')
 
         mail_db = str(mail_db)
 
