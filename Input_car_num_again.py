@@ -30,7 +30,6 @@ class MyCallback(CallbackData, prefix="User_data"):
     user_tgid: int
     separator: str
     car_num: str
-    message_id : str
 
 
 
@@ -43,11 +42,13 @@ async def Input_car_num_again(message: Message, state: FSMContext):
 
     user_tgid = str(message.from_user.id)
 
-    user_data_str = MyCallback(user_tgid = user_tgid, separator = 'separator', car_num = car_num)
+    user_data_str = MyCallback(user_tgid = user_tgid, separator = 'Sep', car_num = car_num)
 
     builder_correct_num = InlineKeyboardBuilder()
     builder_correct_num.button(text=f"Да", callback_data=user_data_str)
-    builder_correct_num.button(text='Нет', callback_data=f'wrong_num')
+    builder_correct_num.button(text='Нет', callback_data=f'wrong_num_icna')
+
+
 
     if 7 <= len(car_num) <= 17:
         await message.answer(f'Проверьте введенные Вами значения:\n'
@@ -58,18 +59,23 @@ async def Input_car_num_again(message: Message, state: FSMContext):
 
 
 
-@router.callback_query(F.data == 'wrong_num')
+@router.callback_query(F.data == 'wrong_num_icna')
 async def wrong_num(call: CallbackQuery, state: FSMContext):
     await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id - 1)
     await state.set_state(Input_again.get_c_num_again)
     await call.message.delete()
-    await call.message.answer(f"Для того чтобы проверить историю автомобиля, необходимо ввести гос. номер, номер кузова или VIN код.\n\n"
-        f""
-        f"Напоминаю, что вводимая Вами информация должна соответствовать стандартам:\n"
-        f"Гос. номер состоит из 7-9 символов: серии, номера и кода региона.\n"
-        f"Номер кузова состоит из 8-16 символов;\n"
-        f"VIN код состоит из 17 символов.")
+    await call.message.answer(f"Напоминаю, что вводимая Вами информация должна соответствовать стандартам:\n"
+                              f"Гос. номер состоит из 7-9 символов: серии, номера и кода региона.\n"
+                              f"Номер кузова состоит из 8-16 символов;\n"
+                              f"VIN код состоит из 17 символов.")
 
 
 
+@router.callback_query(MyCallback.filter(F.separator == "Sep"))
+async def input_again(call: CallbackQuery, state: FSMContext):
+    call_data = call.data.replace('User_data','')
+    call_data = call_data.replace('Sep', '')
+    call_data = call_data.replace(':', '')
+    call_data = int(call_data)
+    await call.message.delete()
 

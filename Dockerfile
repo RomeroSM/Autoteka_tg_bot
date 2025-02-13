@@ -1,33 +1,52 @@
-# Базовый образ Python
+# Базовый образ с Python
 FROM python:3.10-slim
 
-# Установка системных зависимостей
+# Установить рабочую директорию в контейнере
+WORKDIR /app
+
+# Скопировать файлы проекта в контейнер
+COPY . .
+
+# Установка зависимостей для Edge и Selenium
 RUN apt-get update && apt-get install -y \
-    curl \
+    wget \
+    gnupg \
     unzip \
-    chromium \
-    chromium-driver \
+    fonts-liberation \
+    libappindicator3-1 \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libatk1.0-0 \
+    libcups2 \
+    libgbm1 \
+    libgtk-3-0 \
+    libnspr4 \
+    libnss3 \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxrandr2 \
+    xdg-utils \
     && rm -rf /var/lib/apt/lists/*
 
-# Установка Microsoft Edge WebDriver
-RUN curl -O https://msedgewebdriverstorage.blob.core.windows.net/edgewebdriver/113.0.1774.57/edgedriver_linux64.zip && \
-    unzip edgedriver_linux64.zip && \
-    mv msedgedriver /usr/bin/ && \
-    rm edgedriver_linux64.zip
+# Установить Microsoft Edge
+RUN wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | apt-key add - \
+    && echo "deb [arch=amd64] https://packages.microsoft.com/repos/edge stable main" > /etc/apt/sources.list.d/microsoft-edge.list \
+    && apt-get update && apt-get install -y microsoft-edge-stable
 
-# Установка зависимостей проекта
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Установить соответствующий msedgedriver
+RUN wget -q https://msedgedriver.azureedge.net/132.0.2957.115/edgedriver_linux64.zip \
+    && unzip edgedriver_linux64.zip -d /usr/bin/ \
+    && rm edgedriver_linux64.zip \
+    && chmod +x /usr/bin/msedgedriver
 
-# Копирование исходного кода бота
-WORKDIR /app
-COPY . /app
+# Установить зависимости Python
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
 
-# Настройка переменных окружения
-ENV PYTHONUNBUFFERED=1
+# Задать переменные окружения (для dotenv и корректного запуска)
+ENV PYTHONUNBUFFERED=1 \
+    DISPLAY=:99
 
-# Открываем порт для взаимодействия, если нужно
-EXPOSE 8000
-
-# Команда для запуска бота
+# Команда запуска бота
 CMD ["python", "main_bot.py"]

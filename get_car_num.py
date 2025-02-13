@@ -7,9 +7,11 @@ import requests
 import json
 from datetime import datetime
 from itertools import chain
+from dotenv import load_dotenv
 
 from aiogram.filters.callback_data import CallbackData
-from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, message, FSInputFile
+from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, message, FSInputFile, \
+    ReplyKeyboardMarkup, KeyboardButton
 from aiogram import Bot, Dispatcher, html, Router, F
 from aiogram.client.default import DefaultBotProperties
 from aiogram.filters import CommandStart
@@ -18,6 +20,7 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 import main_bot
+from payment import payment
 
 router = Router()
 
@@ -27,7 +30,7 @@ cur = conn.cursor()
 class Input(StatesGroup):
     get_c_num = State()
     get_reqest = State()
-    get_c_num_again = State()
+    phone_num =State()
 
 class MyCallback(CallbackData, prefix="User_data"):
     timestamp: float
@@ -42,7 +45,8 @@ admin_chat_id_db = admin_chat_id_db[0]
 
 
 
-noco_port = ''
+load_dotenv()
+noco_port = os.getenv('NOCO_PORT')
 
 
 
@@ -52,10 +56,13 @@ async def command_start_handler(message: Message, state:FSMContext):
     chat_id = message.chat.id
     user_name = message.from_user.username
 
-    req = requests.get(url=f'http://apps.my-remote.space{noco_port}/api/v2/tables/m2kf36uhm3ogx8m/records',
-                       params={'where': f'(telegramID,eq,{chat_id})'},
-                       headers={'xc-token': '3eCTw82sEU6HjGi-TZ2PxgBoS38gVpTGPvhuSx32'})
-    json_req = req.json()
+    try:
+        req = requests.get(url=f'http://apps.my-remote.space{noco_port}/api/v2/tables/m2kf36uhm3ogx8m/records',
+                           params={'where': f'(telegramID,eq,{chat_id})'},
+                           headers={'xc-token': '3eCTw82sEU6HjGi-TZ2PxgBoS38gVpTGPvhuSx32'})
+        json_req = req.json()
+    except:
+        pass
 
     req_list = json_req['list']
 
@@ -64,13 +71,16 @@ async def command_start_handler(message: Message, state:FSMContext):
 
 
     if len(req_list) == 0:
-        a = requests.post(url=f'http://apps.my-remote.space{noco_port}/api/v2/tables/m2kf36uhm3ogx8m/records',
-                      data= {"Title": "data",
-                             "telegramID": f'{chat_id}',
-                             "telegramName": f"{user_name}",
-                             "LoginDate": f"{current_time}+03:00"
-                            },
-                      headers={'xc-token': '3eCTw82sEU6HjGi-TZ2PxgBoS38gVpTGPvhuSx32'})
+        try:
+            a = requests.post(url=f'http://apps.my-remote.space{noco_port}/api/v2/tables/m2kf36uhm3ogx8m/records',
+                          data= {"Title": "data",
+                                 "telegramID": f'{chat_id}',
+                                 "telegramName": f"{user_name}",
+                                 "LoginDate": f"{current_time}+03:00"
+                                },
+                          headers={'xc-token': '3eCTw82sEU6HjGi-TZ2PxgBoS38gVpTGPvhuSx32'})
+        except:
+            pass
 
     else:
         pass
@@ -123,8 +133,6 @@ async def start_Technical_support(call: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data == 'report_ex')
 async def report_ex(call: CallbackQuery):
     await call.message.delete()
-
-    chat_id = call.message.chat.id
 
     await call.message.answer('Пример отчета по истории автомобиля')
     await call.message.answer('https://autoteka.ru/report/web/uuid/24de3a5a-b4f7-4c9f-ac6d-ca188722b5a2?fromSource=myReports')
@@ -193,60 +201,38 @@ async def wrong_num(call: CallbackQuery, state: FSMContext):
     await main_bot.bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id - 1)
     await state.set_state(Input.get_c_num)
     await call.message.delete()
-    await call.message.answer(
-        f"Для того чтобы проверить историю автомобиля, необходимо ввести гос. номер, номер кузова или VIN код.\n\n"
-        f""
-        f"Напоминаю, что вводимая Вами информация должна соответствовать стандартам:\n"
-        f"Гос. номер состоит из 7-9 символов: серии, номера и кода региона.\n"
-        f"Номер кузова состоит из 8-16 символов;\n"
-        f"VIN код состоит из 17 символов.")
+    await call.message.answer(f"Напоминаю, что вводимая Вами информация должна соответствовать стандартам:\n"
+                              f"Гос. номер состоит из 7-9 символов: серии, номера и кода региона.\n"
+                              f"Номер кузова состоит из 8-16 символов;\n"
+                              f"VIN код состоит из 17 символов.")
 
 
 
 @router.callback_query(F.data == 'correct_num')
 async def correct_num(call: CallbackQuery, state: FSMContext):
     await call.message.delete()
-
     user_tgid = str(call.from_user.id)
-    print(user_tgid)
 
     data = await state.get_data()
     car_num = data["car_num"]
 
-    current_time = str(datetime.now())
-    current_time = current_time.split('.', 1)[0]
-
-    requests.post(url=f'http://apps.my-remote.space{noco_port}/api/v2/tables/m11xijo7hzn6z24/records',
-                  data={"Title": "data",
-                        "telegramID": f'{user_tgid}',
-                        "car_num": f"{car_num}",
-                        "Time": f"{current_time}+03:00"
-                        },
-                  headers={'xc-token': '3eCTw82sEU6HjGi-TZ2PxgBoS38gVpTGPvhuSx32'})
-
-
-    random_code = random.randint(1000,9999)
-
-    await call.message.answer(f'Ваш одноразовый код платежа\n'
-                              f'Вам потребуется ввести его в комментарий к платежу.\n'
-                              f'<b>ВНИМАНИЕ!</b> Если вы не введете данный код, то платеж<b> НЕ ПРОЙДЕТ</b>.\n')
-    await call.message.answer(f'<b>{random_code}</b>')
-    await call.message.answer(f'Убедитесь в том, что ввели код в комментарий к платежу.')
-    await call.message.answer(f'Стоимость отчета в рамках промопериода составит <b>100 ₽</b>.\n'
-                              f'Ссылка для для оплаты: \n'
-                              f'https://www.tinkoff.ru/rm/filipov.andrey7/yL5ed52495 \n ')
-
     await state.clear()
 
-    timestamp = time.time()
-
-    user_data_str = MyCallback(timestamp = timestamp, separator = 'separator')
-
-    builder_approved = InlineKeyboardBuilder()
-    builder_approved.button(text='Одобрено', callback_data=user_data_str)
-
     current_time = str(datetime.now())
     current_time = current_time.split('.', 1)[0]
+
+    try:
+        requests.post(url=f'http://apps.my-remote.space{noco_port}/api/v2/tables/m11xijo7hzn6z24/records',
+                      data={"Title": "data",
+                            "telegramID": f'{user_tgid}',
+                            "car_num": f"{car_num}",
+                            "Time": f"{current_time}+03:00"
+                            },
+                      headers={'xc-token': '3eCTw82sEU6HjGi-TZ2PxgBoS38gVpTGPvhuSx32'})
+    except:
+        pass
+
+
 
     user_url = str(call.from_user.username)
     if user_url != 'None':
@@ -254,16 +240,30 @@ async def correct_num(call: CallbackQuery, state: FSMContext):
     else:
         user_url = 'У пользователя нет параметра username'
 
-    ins_data = (timestamp, user_tgid, car_num, random_code, user_url, current_time)
+    user_tgid_list = list()
+    user_tgid_list.append(user_tgid)
+    user_tgid_tuple = tuple(user_tgid_list)
 
-    cur.execute("INSERT INTO user_data_payment VALUES(?, ?, ?, ?, ?, ?);", ins_data)
+    try:
+        cur.execute("DELETE FROM user_data_payment WHERE user_tgid = ?;", user_tgid_tuple)
+    except:
+        pass
+
+    ins_data = (user_tgid, car_num, user_url)
+
+    cur.execute("INSERT INTO user_data_payment VALUES(?, ?, ?);", ins_data)
     conn.commit()
 
-    await call.bot.send_message(f'{admin_chat_id_db}', text=f'Пользователь с tg id {user_tgid} запросил отчет по автомобилю.\n'
+    await main_bot.bot.send_message(f'{admin_chat_id_db}', text=f'Пользователь с tg id {user_tgid} запросил отчет по автомобилю.\n'
                                           f'Ссылка на аккаунт: {user_url}\n'
                                           f'Время: {current_time}\n'
-                                          f'Данные о машине: {car_num}\n'
-                                          f'Одноразовый код: {random_code}\n'
-                                          f'#Подтверждение_оплаты',
-                                          reply_markup=builder_approved.as_markup())
+                                          f'Данные о машине: {car_num}\n')
+
+    await call.message.answer('Внимание! Обязательно укажите свой номер телефона при оплате. В противном случае оплата не пройдет.')
+
+
+    await payment(bot=main_bot.bot,chat_id=user_tgid)
+
+
+
 

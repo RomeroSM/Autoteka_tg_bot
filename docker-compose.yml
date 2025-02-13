@@ -1,11 +1,55 @@
 version: '3.8'
 
 services:
-  bot:
-    build: .
-    container_name: telegram_bot
-    volumes:
-      - ./data_db.db:/app/data_db.db
+  app:
+    build:
+      context: .  # Теперь сборка идёт из текущей папки
+    container_name: selenium_app
+    depends_on:
+      webdriver:
+        condition: service_healthy  # Ждём, пока WebDriver будет готов
     environment:
-      - BOT_TOKEN='7975991113:AAF1I6DFbCipiX0WBuqw7iHKzdcAPIZfcHs'
-    restart: unless-stopped
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - .:/app  # Связываем всю текущую папку с контейнером
+    working_dir: /app  # Указываем рабочую директорию внутри контейнера
+    networks:
+      - selenium_net
+
+  webdriver:
+    image: selenium/standalone-edge:latest
+    container_name: selenium_webdriver
+    ports:
+      - "4444:4444"
+    networks:
+      - selenium_net
+    environment:
+      - SE_NODE_SESSION_TIMEOUT=310  # Удаляет старые сессии через 10 сек.
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4444/wd/hub/status"]
+      interval: 5s
+      retries: 5
+      start_period: 10s
+      timeout: 5s
+
+networks:
+  selenium_net:
+    driver: bridge
+
+
+
+
+
+#version: '3.8'
+#
+#services:
+#  bot:
+#    build:
+#      context: .
+#    container_name: telegram_bot
+#    env_file:
+#      - .env  # Указываем путь к .env файлу
+#    volumes:
+#      - ./data_db.db:/app/data_db.db
+#    restart: unless-stopped
+#

@@ -60,19 +60,17 @@ async def correct_num(user_tgid, bot):
     user_tgid_list.append(user_tgid)
     user_tgid_tuple = tuple(user_tgid_list)
 
-    cur.execute("SELECT car_num, user_url, time  FROM user_data_payment WHERE user_tgid = ?;", user_tgid_tuple)
+    cur.execute("SELECT car_num, user_url  FROM user_data_payment WHERE user_tgid = ?;", user_tgid_tuple)
     db_data = cur.fetchall()
     db_data = list(chain(*db_data))
 
+    try:
+        cur.execute("DELETE FROM user_data_payment WHERE user_tgid = ?;", user_tgid_tuple)
+    except:
+        pass
+
     car_num = db_data[0]
     user_url = db_data[1]
-    current_time = db_data[2]
-
-
-    await bot.send_message(text=f'Пользователь с tg id {user_tgid} запросил отчет по автомобилю.\n'
-                                          f'Ссылка на аккаунт: {user_url}\n'
-                                          f'Время: {current_time}\n'
-                                          f'Данные о машине: {car_num}', chat_id=admin_chat_id_db)
 
 
     current_time = str(datetime.now())
@@ -109,23 +107,21 @@ async def correct_num(user_tgid, bot):
                                                  reply_markup=builder_approved.as_markup())
 
         await bot.send_message(chat_id=user_tgid, text='Просим прощения, сервис временно недоступен.\n'
-                                                            'Пожалуйста, ожидайте. Запрос на исправление проблемы отрпавлен администратору.\n'
-                                                            'Можете не беспокоиться, ваша оплаченная  проверка никуда не пропадет.\n'
-                                                            'Как только будут исправлены все неполадки ваш запрос будет обработан.')
+                                                       'Пожалуйста, ожидайте. Запрос на исправление проблемы отрпавлен администратору.\n'
+                                                       'Можете не беспокоиться, ваша оплаченная  проверка никуда не пропадет.\n'
+                                                       'Как только будут исправлены все неполадки ваш запрос будет обработан.')
 
     else:
-        options = webdriver.EdgeOptions()
-        driver = webdriver.Remote(
-            command_executor='http://webdriver:4444/wd/hub',
-            options=options
-        )
-        driver.get('https://autoteka.ru')
-
-        #
-        # driver = webdriver.Edge()
+        # options = webdriver.EdgeOptions()
+        # driver = webdriver.Remote(
+        #     command_executor='http://webdriver:4444/wd/hub',
+        #     options=options
+        # )
         # driver.get('https://autoteka.ru')
 
-        #await asyncio.sleep(999)
+
+        driver = webdriver.Edge()
+        driver.get('https://autoteka.ru')
 
         mail_db = str(mail_db)
 
