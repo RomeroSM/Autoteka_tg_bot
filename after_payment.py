@@ -242,7 +242,7 @@ async def correct_num(user_tgid, bot):
 
                     await bot.send_message(text='Отчет по автомобилю, который Вы запрашивали, сформирован.', chat_id=user_tgid)
                     await bot.send_message(text=current_url, chat_id=user_tgid)
-                    await bot.send_message(text='Для формирования отчета по другому автомобилю введите команду ',
+                    await bot.send_message(text='Для формирования отчета по другому автомобилю введите команду /start',
                                                 chat_id=user_tgid)
 
                     current_time = str(datetime.now())
@@ -278,7 +278,7 @@ async def correct_num(user_tgid, bot):
                     await bot.send_message(text='Отчет по автомобилю, который Вы запрашивали, сформирован.', chat_id=user_tgid)
                     await bot.send_message(text=current_url, chat_id=user_tgid)
                     await bot.send_document(document=doc, chat_id=user_tgid)
-                    await bot.send_message(text='Для формирования отчета по другому автомобилю введите команду "\start',
+                    await bot.send_message(text='Для формирования отчета по другому автомобилю введите команду \start',
                                                 chat_id=user_tgid)
 
                     await bot.send_message(f'{admin_chat_id_db}',
@@ -353,7 +353,7 @@ async def correct_num(user_tgid, bot):
 
                 await bot.send_message(text='Отчет по автомобилю, который Вы запрашивали, сформирован.', chat_id=user_tgid)
                 await bot.send_message(text=current_url, chat_id=user_tgid)
-                await bot.send_message(text='Для формирования отчета по другому автомобилю введите команду ', chat_id=user_tgid)
+                await bot.send_message(text='Для формирования отчета по другому автомобилю введите команду /start', chat_id=user_tgid)
 
                 await bot.send_message(f'{admin_chat_id_db}',
                                             text=f'Данные по автомобилю пользователя с tg id {user_tgid}.\n'
