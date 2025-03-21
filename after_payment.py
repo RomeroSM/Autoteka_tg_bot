@@ -131,15 +131,13 @@ async def correct_num(user_tgid, bot):
         email_inp = driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div[2]/div[2]/div[1]/form/div[1]/div/input')
         email_inp.send_keys(f'{mail_db}' + Keys.RETURN)
 
-        password_inp = driver.find_element(By.XPATH,
-                                           '/html/body/div[1]/div[2]/div[2]/div[2]/div[1]/form/div[2]/div/input')
+        password_inp = driver.find_element(By.XPATH,'/html/body/div[1]/div[2]/div[2]/div[2]/div[1]/form/div[2]/div/input')
         password_inp.send_keys(f'{password_db}' + Keys.RETURN)
 
         enter_btn2 = driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div[2]/div[2]/div[1]/form/button')
         enter_btn2.click()
 
-        check_num = driver.find_element(By.XPATH,
-                                        '/html/body/div[1]/div/div[2]/div[1]/div/div/div/div[1]/div[4]/form/div/div/input')
+        check_num = driver.find_element(By.XPATH,'/html/body/div[1]/div/div[1]/div[1]/header/div/div[1]/div/form/div/div/input')
         check_num.send_keys(f'{car_num}' + Keys.RETURN)
 
         await asyncio.sleep(10)
